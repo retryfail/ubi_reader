@@ -63,19 +63,24 @@ class ubifs():
         for i in range(0, 2):
             try:
                 mst_offset = self.leb_size * (UBIFS_MST_LNUM + i) 
-                self.file.seek(mst_offset)
-                mst_chdr = nodes.common_hdr(self.file.read(UBIFS_COMMON_HDR_SZ))
-                log(self , '%s file addr: %s' % (mst_chdr, self.file.last_read_addr()))
-                verbose_display(mst_chdr)
+                while True:
+                    try:
+                        self.file.seek(mst_offset)
+                        mst_chdr = nodes.common_hdr(self.file.read(UBIFS_COMMON_HDR_SZ))
+                        log(self , '%s file addr: %s' % (mst_chdr, self.file.last_read_addr()))
+                        verbose_display(mst_chdr)
 
-                if mst_chdr.node_type == UBIFS_MST_NODE:
-                    self.file.seek(mst_offset + UBIFS_COMMON_HDR_SZ)
-                    buf = self.file.read(UBIFS_MST_NODE_SZ)
-                    self._mst_nodes[i] = nodes.mst_node(buf)
-                    log(self , '%s%s file addr: %s' % (self._mst_nodes[i], i, self.file.last_read_addr()))
-                    verbose_display(self._mst_nodes[i])
-                else:
-                    raise Exception('Wrong node type.')
+                        if mst_chdr.node_type == UBIFS_MST_NODE:
+                            self.file.seek(mst_offset + UBIFS_COMMON_HDR_SZ)
+                            buf = self.file.read(UBIFS_MST_NODE_SZ)
+                            self._mst_nodes[i] = nodes.mst_node(buf)
+                            log(self , '%s%s file addr: %s' % (self._mst_nodes[i], i, self.file.last_read_addr()))
+                            verbose_display(self._mst_nodes[i])
+                        else:
+                            raise Exception('Wrong node type.')
+                        mst_offset += 0x1000
+                    except:
+                        break
             except Exception as e:
                 error(self, 'Fatal', 'Master block %s error: %s' % (i, e))
 
